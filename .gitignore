@@ -1,0 +1,8 @@
+node_modules
+node_modules/
+scripts/__pycache__/
+.DS_Store
+
+# Local full-detail exports are too large for GitHub Pages.
+outputs/issue_details/
+outputs/keyword_scorecard_workbook/

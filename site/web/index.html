@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Chewy SEO Scorecard</title>
+    <link rel="stylesheet" href="./styles.css?v=20260819-0923" />
+  </head>
+  <body>
+    <header class="app-header">
+      <div>
+        <p class="eyebrow">Chewy SEO</p>
+        <h1>Executive Scorecard</h1>
+      </div>
+      <div class="header-actions">
+        <button class="icon-button" id="refreshButton" type="button" title="Reload current CSV">
+          <span aria-hidden="true">R</span>
+        </button>
+        <label class="upload-button" for="csvInput">
+          <span aria-hidden="true">+</span>
+          <span>Scorecard CSV</span>
+        </label>
+        <input id="csvInput" class="file-input" type="file" accept=".csv,text/csv" />
+      </div>
+    </header>
+
+    <main class="shell">
+      <section class="summary-grid" aria-label="Scorecard summary">
+        <article class="metric-tile">
+          <span class="metric-label">Overall Technical</span>
+          <strong id="siteOverall">--</strong>
+          <span id="siteOverallBand" class="metric-note">--</span>
+        </article>
+        <article class="metric-tile">
+          <span class="metric-label">Scorable URLs</span>
+          <strong id="scorableUrls">--</strong>
+          <span id="excludedCrawl" class="metric-note">-- bad crawls excluded</span>
+        </article>
+        <article class="metric-tile">
+          <span class="metric-label">Ranking Keywords</span>
+          <strong id="rankingKeywordsAvg">--</strong>
+          <span id="top10ShareAvg" class="metric-note">-- top 10 share</span>
+        </article>
+        <article class="metric-tile opportunity">
+          <span class="metric-label">Top Potential</span>
+          <strong id="topPotential">--</strong>
+          <span id="topPotentialType" class="metric-note">--</span>
+        </article>
+      </section>
+
+      <section class="toolbar" aria-label="Scorecard controls">
+        <div class="segmented" role="tablist" aria-label="Views">
+          <button class="segment active" data-view="heatmap" type="button">Heatmap</button>
+          <button class="segment" data-view="opportunity" type="button">Opportunity</button>
+          <button class="segment" data-view="urls" type="button">URL List</button>
+          <button class="segment" data-view="weights" type="button">Weights</button>
+          <button class="segment" data-view="inputs" type="button">Inputs</button>
+        </div>
+        <div class="filters">
+          <label>
+            <span>Page type</span>
+            <select id="pageTypeFilter">
+              <option value="all">All</option>
+            </select>
+          </label>
+          <label>
+            <span>Band</span>
+            <select id="bandFilter">
+              <option value="all">All</option>
+              <option value="green">Strong</option>
+              <option value="amber">Needs attention</option>
+              <option value="red">At risk</option>
+            </select>
+          </label>
+        </div>
+      </section>
+
+      <section id="statusBanner" class="status-banner hidden" role="status"></section>
+
+      <section class="view active" id="heatmapView" aria-label="Executive heatmap">
+        <div class="section-heading">
+          <div>
+            <h2>Health By Page Type</h2>
+            <p>Botify technical scores with Conductor ranking context.</p>
+          </div>
+          <div class="legend" aria-label="Score legend">
+            <span class="legend-pill strong">85-100 Strong</span>
+            <span class="legend-pill attention">70-84 Needs attention</span>
+            <span class="legend-pill risk">0-69 At risk</span>
+            <span class="legend-pill potential">Potential</span>
+          </div>
+        </div>
+
+        <div class="table-frame">
+          <table class="score-table" id="scoreTable">
+            <thead>
+              <tr>
+                <th>Page type</th>
+                <th>Meta</th>
+                <th>Schema</th>
+                <th>URL</th>
+                <th>H1</th>
+                <th>Index</th>
+                <th>Links</th>
+                <th>Speed</th>
+                <th>Ranking Potential</th>
+                <th>Overall Tech</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="view" id="opportunityView" aria-label="Ranking opportunity">
+        <div class="section-heading">
+          <div>
+            <h2>Ranking Opportunity</h2>
+            <p>Current keyword health next to reachable upside.</p>
+          </div>
+        </div>
+        <div class="page-type-button-row" id="opportunityPageTypes" aria-label="Opportunity page type selector"></div>
+        <div class="opportunity-layout">
+          <div class="ranking-bars" id="rankingBars"></div>
+          <aside class="detail-panel" id="detailPanel">
+            <p class="eyebrow">Selected page type</p>
+            <h3 id="detailTitle">--</h3>
+            <div class="detail-metrics" id="detailMetrics"></div>
+          </aside>
+        </div>
+        <section class="issue-section" aria-label="Aggregated issue drivers">
+          <div class="section-heading compact">
+            <div>
+              <h2 id="issueHeading">Why This Page Type Is Not At 100</h2>
+              <p>Aggregated issue drivers by scorecard category. URL examples are intentionally hidden.</p>
+            </div>
+          </div>
+          <div class="issue-grid" id="issueGrid"></div>
+        </section>
+      </section>
+
+      <section class="view" id="urlsView" aria-label="Issue URL list">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Issue Drilldown</p>
+            <h2 id="urlListTitle">Select A Recommended Fix</h2>
+            <p id="urlListMeta">Click any callout on the Opportunity tab to inspect the affected URLs and supporting data.</p>
+          </div>
+          <div class="url-list-actions">
+            <button class="secondary-button" id="backToOpportunityButton" type="button">Back to Opportunity</button>
+            <a class="download-button hidden" id="urlDownloadLink" href="#" download>Download CSV</a>
+          </div>
+        </div>
+        <div class="url-list-toolbar">
+          <label>
+            <span>Search URLs and evidence</span>
+            <input id="urlSearchInput" type="search" placeholder="Filter loaded rows" />
+          </label>
+          <span id="urlListStatus" class="metric-note">No issue selected</span>
+        </div>
+        <div class="url-table-frame">
+          <table class="url-table" id="urlDetailTable">
+            <thead></thead>
+            <tbody></tbody>
+          </table>
+          <div class="empty-state" id="urlEmptyState">Choose a recommended fix to see URL-level evidence.</div>
+        </div>
+      </section>
+
+      <section class="view" id="weightsView" aria-label="Scorecard weights">
+        <div class="section-heading">
+          <div>
+            <h2>Weights And Scoring Decisions</h2>
+            <p>How each top-level metric contributes to Overall Tech and what earns the section score.</p>
+          </div>
+        </div>
+        <div class="weights-overview">
+          <article>
+            <span class="metric-label">Overall Tech Formula</span>
+            <strong>Equal-weight average</strong>
+            <p>Meta, Schema, URL, H1, Index, Links, and Speed each contribute one available section score. When all seven are measured, each section is worth 14.3% of Overall Tech.</p>
+          </article>
+          <article>
+            <span class="metric-label">Excluded From Overall Tech</span>
+            <strong>Ranking signals</strong>
+            <p>Ranking Keywords and Ranking Potential stay out of Overall Tech. They are used for prioritization and opportunity planning, not grading controllable technical quality.</p>
+          </article>
+          <article>
+            <span class="metric-label">Scoring Denominator</span>
+            <strong>Bad crawls excluded</strong>
+            <p>Rows with no usable Botify evidence are kept in crawl counts but removed from section-score averages so failed crawl records do not behave like real page failures.</p>
+          </article>
+        </div>
+        <div class="weights-grid" id="weightsGrid"></div>
+      </section>
+
+      <section class="view" id="inputsView" aria-label="Inputs">
+        <div class="section-heading">
+          <div>
+            <h2>Inputs And Coverage</h2>
+            <p>Current source readiness for scorecard automation.</p>
+          </div>
+        </div>
+        <div class="input-grid" id="inputGrid"></div>
+      </section>
+    </main>
+
+    <script src="./app.js?v=20260819-0923"></script>
+  </body>
+</html>
