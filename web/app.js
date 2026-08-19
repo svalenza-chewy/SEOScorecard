@@ -37,11 +37,8 @@ const els = {
   siteOverall: document.querySelector("#siteOverall"),
   siteOverallBand: document.querySelector("#siteOverallBand"),
   scorableUrls: document.querySelector("#scorableUrls"),
-  excludedCrawl: document.querySelector("#excludedCrawl"),
   rankingKeywordsAvg: document.querySelector("#rankingKeywordsAvg"),
   top10ShareAvg: document.querySelector("#top10ShareAvg"),
-  topPotential: document.querySelector("#topPotential"),
-  topPotentialType: document.querySelector("#topPotentialType"),
   opportunityPageTypes: document.querySelector("#opportunityPageTypes"),
   rankingBars: document.querySelector("#rankingBars"),
   detailTitle: document.querySelector("#detailTitle"),
@@ -343,24 +340,12 @@ function renderSummary(rows) {
   const ranking = average(rows, "ranking_keywords");
   const top10 = average(rows, "top10_share_pct");
   const scorable = sum(rows, "scorable_urls");
-  const excluded = sum(rows, "excluded_bad_crawl_urls");
-  const potentialRows = rows
-    .map((row) => ({
-      type: row.page_type,
-      value: numberValue(row, "ranking_potential"),
-    }))
-    .filter((item) => item.value != null)
-    .sort((a, b) => b.value - a.value);
-  const top = potentialRows[0];
 
   els.siteOverall.textContent = formatScore(overall);
   els.siteOverallBand.textContent = bandLabel(overall);
   els.scorableUrls.textContent = formatInteger(scorable);
-  els.excludedCrawl.textContent = `${formatInteger(excluded)} bad crawls excluded`;
   els.rankingKeywordsAvg.textContent = formatScore(ranking);
   els.top10ShareAvg.textContent = `${formatDecimal(top10)}% top 10 share`;
-  els.topPotential.textContent = top ? formatScore(top.value) : "--";
-  els.topPotentialType.textContent = top ? top.type : "--";
 }
 
 function scoreCell(row, key) {
