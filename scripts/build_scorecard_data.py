@@ -420,11 +420,21 @@ def is_bad_crawl(row):
     has_schema_signal = any(
         parse_bool(row.get(column)) is True for column in SCHEMA_SIGNAL_COLUMNS
     )
+    has_no_data_marker = any(
+        text(value).lower() == "no data" for value in row.values()
+    )
+    has_no_onpage_data = (
+        not has_extracted_text
+        and not has_schema_signal
+        and (parse_int(row.get("No. of Unique Outlinks to Internal Pages")) or 0) == 0
+    )
     has_index_signal = (
         parse_bool(row.get("Canonical Points to Self")) is True
         or parse_bool(row.get("In Sitemaps")) is True
     )
-    return not has_extracted_text and not has_schema_signal and not has_index_signal
+    return has_no_data_marker or has_no_onpage_data or (
+        not has_extracted_text and not has_schema_signal and not has_index_signal
+    )
 
 
 def read_botify():
@@ -1484,7 +1494,12 @@ def issue_detail_rows(
     targeted_rows = [
         row for row in rows if row["_normalized_url"] in main_keyword_by_url
     ]
-    botify_by_url = {row["_normalized_url"]: row for page_rows in botify_by_type.values() for row in page_rows}
+    botify_by_url = {
+        row["_normalized_url"]: row
+        for page_rows in botify_by_type.values()
+        for row in page_rows
+        if not is_bad_crawl(row)
+    }
 
     schema_issue_columns = {
         "Product schema missing": "Product Exists",
@@ -1727,7 +1742,9 @@ def write_issue_detail_files(
         )
         issue_row["detail_file"] = f"/outputs/issue_details/{filename}"
         with (detail_dir / filename).open("w", newline="", encoding="utf-8") as handle:
-            writer = csv.DictWriter(handle, fieldnames=ISSUE_DETAIL_FIELDS)
+            writer = csv.DictWriter(
+                handle, fieldnames=ISSUE_DETAIL_FIELDS, lineterminator="\n"
+            )
             writer.writeheader()
             writer.writerows(detail_rows)
 
@@ -2264,7 +2281,7 @@ def write_issue_summary(
         main_keyword_by_url,
     )
     with output_path.open("w", newline="", encoding="utf-8") as handle:
-        writer = csv.DictWriter(handle, fieldnames=ISSUE_FIELDS)
+        writer = csv.DictWriter(handle, fieldnames=ISSUE_FIELDS, lineterminator="\n")
         writer.writeheader()
         writer.writerows(issue_rows)
 
@@ -2272,7 +2289,9 @@ def write_issue_summary(
 def main():
     OUT_DIR.mkdir(parents=True, exist_ok=True)
     botify_rows, title_counts, meta_counts, h1_counts = read_botify()
-    botify_urls = {row["_normalized_url"] for row in botify_rows}
+    botify_urls = {
+        row["_normalized_url"] for row in botify_rows if not is_bad_crawl(row)
+    }
     botify_by_url = {row["_normalized_url"]: row for row in botify_rows}
     keyword_by_url, main_keyword_by_url = read_keywords()
     max_url_audience_potential = max(
@@ -2281,7 +2300,7 @@ def main():
 
     url_output = OUT_DIR / "url_keyword_summary.csv"
     with url_output.open("w", newline="", encoding="utf-8") as handle:
-        writer = csv.writer(handle)
+        writer = csv.writer(handle, lineterminator="\n")
         writer.writerow(
             [
                 "normalized_url",
@@ -2549,7 +2568,7 @@ def main():
             "overall_proxy_excl_ranking_keywords",
             "overall_proxy_incl_ranking_keywords",
         ]
-        writer = csv.DictWriter(handle, fieldnames=fields)
+        writer = csv.DictWriter(handle, fieldnames=fields, lineterminator="\n")
         writer.writeheader()
         for page_type in PAGE_TYPES:
             rows = botify_by_type.get(page_type, [])

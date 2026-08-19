@@ -82,7 +82,7 @@ The scorecard currently rolls up these page types:
 
 ## Bad Crawl Exclusion
 
-Rows are excluded from health-score averages when they look like bad crawls. A row is treated as a bad crawl when it has no extracted title, meta description, H1, schema signal, canonical signal, or sitemap signal.
+Rows are excluded from health-score averages and opportunity URL lists when they look like bad crawls. A row is treated as a bad crawl when Botify reports `No Data`, or when the row has no extracted title, meta description, H1, schema signal, or internal outlink evidence. This keeps crawl shells such as `https://www.chewy.com/b/pet-parents-15439` out of scoring and remediation lists.
 
 Excluded rows still appear in URL counts through `Excluded Bad Crawl URLs` and `Excluded Bad Crawl %`, but they do not pull down page-type scores.
 
